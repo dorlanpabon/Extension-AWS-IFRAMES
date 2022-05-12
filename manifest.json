@@ -1,0 +1,29 @@
+{
+  "name": "Utils AWS",
+  "action": {},
+  "manifest_version": 3,
+  "version": "0.1",
+  "description": "AWS utilities",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
+  "icons": {
+    "16": "./assets/images/icon1.png",
+    "32": "./assets/images/icon1.png",
+    "48": "./assets/images/icon1.png",
+    "64": "./assets/images/icon1.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.console.aws.amazon.com/cloudwatch/home?region=*"
+      ],
+      "js": [
+        "assets/js/jquery.min.js",
+        "assets/js/content.js"
+      ]
+    }
+  ]
+}
