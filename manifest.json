@@ -23,6 +23,9 @@
       "js": [
         "assets/js/jquery.min.js",
         "assets/js/jsoneditor.min.js",
+        "assets/js/functions/logsInsights.js",
+        "assets/js/functions/logsGroups.js",
+        "assets/js/includes/createElements.js",
         "assets/js/content.js"
       ],
       "css": [
