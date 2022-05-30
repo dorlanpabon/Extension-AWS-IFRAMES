@@ -7,56 +7,76 @@ console.log('content.js loaded');
 $(function () {
 	console.log('content.js loaded');
 	var doc = document;
-	//Funcion para esperar un elemento del DOM
-	function waitForElm(doc, selector) {
-		return new Promise(resolve => {
+	//load the handler when the page is loaded
+	loadHandler(doc);
+	//execute when the url changes
+	window.addEventListener('popstate', function (event) {
+		loadHandler(doc);
+	});
+});
+
+//Funcion para esperar un elemento del DOM
+function waitForElm(doc, selector) {
+	return new Promise(resolve => {
+		if (doc.querySelector(selector)) {
+			return resolve(doc.querySelector(selector));
+		}
+		const observer = new MutationObserver(mutations => {
 			if (doc.querySelector(selector)) {
-				return resolve(doc.querySelector(selector));
+				resolve(doc.querySelector(selector));
+				observer.disconnect();
 			}
-			const observer = new MutationObserver(mutations => {
-				if (doc.querySelector(selector)) {
-					resolve(doc.querySelector(selector));
-					observer.disconnect();
-				}
-			});
-			observer.observe(doc.body, {
-				childList: true,
-				subtree: true
-			});
+		});
+		observer.observe(doc.body, {
+			childList: true,
+			subtree: true
+		});
+	});
+}
+
+function loadHandler(doc) {
+	//verify if the url is the same as the current url
+	if (window.location.href.indexOf('logs-insights') > -1 || window.location.href.indexOf('log-groups') > -1) {
+		waitForElm(doc, '#microConsole-Logs').then(async (elm) => {
+			//search in window the iframe with the id "microConsole-Logs"
+			var iframe = document.querySelector('#microConsole-Logs');
+			//get the iframe's contentDocument
+			var iframeDoc = iframe.contentDocument;
+			//get the iframe's contentWindow
+			var iframeWin = iframe.contentWindow;
+			//get the iframe's contentWindow's document
+			var iframeDoc = iframeWin.document;
+			var editor1 = iframeDoc.getElementById('jsoneditor1');
+			var editor2 = iframeDoc.getElementById('jsoneditor2');
+
+
+			await waitForElm(iframeDoc, 'main[class="logs__main"]')
+
+			if (!editor1 && !editor2) {
+				var { editor1, editor2 } = await createElements(iframeDoc);
+
+				console.log('editor1', editor1);
+				console.log('editor2', editor2);
+			}
+			//verify if exist element with id "getjsonsGroups"
+			if (!iframeDoc.getElementById('getjsonsGroups') && window.location.href.indexOf('log-groups') > -1) {
+				Promise.all([
+					waitForElm(iframeDoc, 'button[class="awsui-button awsui-button-disabled awsui-button-variant-primary awsui-hover-child-icons"]'),
+				]).then(async (elm) => {
+					logsGroups(iframeDoc, waitForElm, editor1, editor2)
+				});
+
+			}
+			//verify if exist element with id "geturls"
+			if ((!iframeDoc.getElementById('geturls') || !iframeDoc.getElementById('getjsons')) && window.location.href.indexOf('logs-insights') > -1) {
+				Promise.all([
+					waitForElm(iframeDoc, '#scroll-query-button > button'),
+				]).then(function (values) {
+					logsInsights(iframeDoc, waitForElm, editor1, editor2),
+						console.log('after Promise.all')
+				});
+			}
+
 		});
 	}
-	waitForElm(doc, '#microConsole-Logs').then(async (elm) => {
-		//search in window the iframe with the id "microConsole-Logs"
-		var iframe = document.querySelector('#microConsole-Logs');
-		//get the iframe's contentDocument
-		var iframeDoc = iframe.contentDocument;
-		//get the iframe's contentWindow
-		var iframeWin = iframe.contentWindow;
-		//get the iframe's contentWindow's document
-		var iframeDoc = iframeWin.document;
-
-		await waitForElm(iframeDoc, 'main[class="logs__main"]')
-
-		const { editor1, editor2 } = await createElements(iframeDoc);
-
-		console.log('editor1', editor1);
-		console.log('editor2', editor2);
-
-		Promise.all([
-			waitForElm(iframeDoc, 'button[class="awsui-button awsui-button-disabled awsui-button-variant-primary awsui-hover-child-icons"]'),
-		]).then(async (elm) => {
-			logsGroups(iframeDoc, waitForElm, editor1, editor2)
-		});
-
-
-
-		Promise.all([
-			waitForElm(iframeDoc, '#scroll-query-button > button'),
-		]).then(function (values) {
-			logsInsights(iframeDoc, waitForElm, editor1, editor2),
-				console.log('after Promise.all')
-		});
-
-	});
-
-});
+}

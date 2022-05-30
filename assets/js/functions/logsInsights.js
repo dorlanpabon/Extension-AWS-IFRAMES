@@ -47,16 +47,18 @@ async function logsInsights(iframeDoc, waitForElm, editor1, editor2) {
             var tdTitle = r.children[0].innerText;
             var tdValue = r.children[1].innerText;
             var tdValueHTML = r.children[1];
+            //get the code region from URL window
+            var region = window.location.href.replace('https://', '').split('.')[0];
             //regex to get the url StateFunction
             if (RegExp('^arn:aws:states:[a-zA-Z0-9-_]{1,}:[0-9]{12}:execution:[a-zA-Z0-9-_]{1,}:[a-zA-Z0-9-_]{1,}').test(tdValue) && tdTitle.includes("execution_arn")) {
-                execution_arn = 'https://us-east-1.console.aws.amazon.com/states/home?region=us-east-1#/executions/details/' + tdValue;
+                execution_arn = 'https://' + region + '.console.aws.amazon.com/states/home?region=' + region + '#/executions/details/' + tdValue;
                 console.log(tdValueHTML.innerHTML = '<a href="' + execution_arn + '" target="_blank">' + tdValue + '</a>');
             };
             //regex to get the url lambda
-            if (RegExp('\d*:\/aws\/[a-zA-Z0-9-_]*\/[a-zA-Z0-9-_]*').test(tdValue) && tdTitle.includes("@log")) {
+            if (RegExp('\d*:[a-zA-Z0-9-_]*').test(tdValue) && tdTitle.includes("@log")) {
                 //remplazamos el / por $252F para que amazon lo reconozca
                 textLog = tdValue.replace(/\d*:/, '').replaceAll('/', '$252F');
-                urlLog = 'https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/' + textLog;
+                urlLog = 'https://' + region + '.console.aws.amazon.com/cloudwatch/home?region=' + region + '#logsV2:log-groups/log-group/' + textLog;
                 console.log(tdValueHTML.innerHTML = '<a href="' + urlLog + '" target="_blank">' + tdValue + '</a>');
                 //recorrer todos los tdValueHTML para obtener el logStream
                 var tdValueParent;
@@ -67,13 +69,13 @@ async function logsInsights(iframeDoc, waitForElm, editor1, editor2) {
                         tdValueParent = r.parentNode.children[i].children[1].innerText;
                         //remplazamos el / por $252F para que amazon lo reconozca
                         textLogStream = tdValueParent.replaceAll('/', '$252F');
-                        logStream = 'https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/' + textLog + '/log-events/' + textLogStream;
+                        logStream = 'https://' + region + '.console.aws.amazon.com/cloudwatch/home?region=' + region + '#logsV2:log-groups/log-group/' + textLog + '/log-events/' + textLogStream;
                         console.log(r.parentNode.children[i].children[1].innerHTML = '<a href="' + logStream + '" target="_blank">' + tdValueParent + '</a>');
                     }
                     //if @timestamp
                     if (r.parentNode.children[i].innerText.includes("@timestamp")) {
                         timestamp = r.parentNode.children[i].children[1].innerText;
-                        urllogStreamTimestamp = 'https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#logsV2:log-groups/log-group/' + textLog + '/log-events/' + textLogStream + '$3Fstart$3D' + timestamp + '$26end$3D' + (Number(timestamp) + 1);
+                        urllogStreamTimestamp = 'https://' + region + '.console.aws.amazon.com/cloudwatch/home?region=' + region + '#logsV2:log-groups/log-group/' + textLog + '/log-events/' + textLogStream + '$3Fstart$3D' + timestamp + '$26end$3D' + (Number(timestamp) + 1);
                         console.log(r.parentNode.children[i].children[1].innerHTML = '<a href="' + urllogStreamTimestamp + '" target="_blank">' + timestamp + '</a>');
                     }
                 }
