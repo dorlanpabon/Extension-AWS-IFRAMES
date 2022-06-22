@@ -68,12 +68,12 @@ function loadHandler(doc) {
 			var editor1 = iframeDoc.getElementById('jsoneditor1');
 			var editor2 = iframeDoc.getElementById('jsoneditor2');
 
-			await injectCode(chrome.runtime.getURL('/assets/js/jsoneditor.min.js'), iframeDoc);
 
 			await waitForElm(iframeDoc, 'main[class="logs__main"]')
 
 
 			if (!editor1 && !editor2) {
+				await injectCode(chrome.runtime.getURL('/assets/js/jsoneditor.min.js'), iframeDoc);
 				var { editor1, editor2 } = await createElements(iframeDoc);
 
 				console.log('editor1', editor1);
