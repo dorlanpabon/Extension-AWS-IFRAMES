@@ -33,7 +33,26 @@ function waitForElm(doc, selector) {
 		});
 	});
 }
+//inject.js
 
+const nullthrows = (v) => {
+	if (v == null) throw new Error("it's a null");
+	return v;
+}
+
+function injectCode(src, iframeDoc) {
+	const script = document.createElement('script');
+	// This is why it works!
+	script.src = src;
+	script.onload = function () {
+		console.log("script injected");
+		this.remove();
+	};
+	console.log(script)
+	// This script runs before the <head> element is created,
+	// so we add the script to <html> instead.
+	nullthrows(iframeDoc.head).appendChild(script);
+}
 function loadHandler(doc) {
 	//verify if the url is the same as the current url
 	if (window.location.href.indexOf('logs-insights') > -1 || window.location.href.indexOf('log-groups') > -1) {
@@ -49,8 +68,10 @@ function loadHandler(doc) {
 			var editor1 = iframeDoc.getElementById('jsoneditor1');
 			var editor2 = iframeDoc.getElementById('jsoneditor2');
 
+			await injectCode(chrome.runtime.getURL('/assets/js/jsoneditor.min.js'), iframeDoc);
 
 			await waitForElm(iframeDoc, 'main[class="logs__main"]')
+
 
 			if (!editor1 && !editor2) {
 				var { editor1, editor2 } = await createElements(iframeDoc);

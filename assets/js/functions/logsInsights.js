@@ -128,11 +128,91 @@ async function logsInsights(iframeDoc, waitForElm, editor1, editor2) {
         });
     }
     //Escucha los clicks en el boton de cargar
-    iframeDoc.querySelector("#geturls").addEventListener("click", () => {
+    /* iframeDoc.querySelector("#geturls").addEventListener("click", () => {
         cargarURLS()
-    }, false);
+    }, false); */
     //Escucha los clicks en el boton de cargar
     iframeDoc.querySelector("#getjsons").addEventListener("click", () => {
         cargarJsonView()
     }, false);
+
+    /**@type{WeakMap}*/ var registeredListeners = new WeakMap();
+
+    hearEvent(iframeDoc.querySelector("#geturls"), "click", function propagate(evt) {
+        fireEvent(iframeDoc.querySelector("#getjsons"), evt, propagate);
+    });
+
+
+
+    /**
+     * @param{Element} target
+     * @param{string} name
+     * @param{function(Event=):(boolean|undefined)} handle
+     * @param{(Object<string,boolean>|boolean)=} options
+     * @return {undefined}
+     */
+    function hearEvent(target, name, handle, options) {
+        target.addEventListener(name, handle, options);
+        var curArr = registeredListeners.get(target);
+        if (!curArr) registeredListeners.set(target, (curArr = []));
+        console.log(options)
+        curArr.push([
+            "" + name,
+            handle,
+            typeof options == "object" ? !!options.capture : !!options,
+            target
+        ]);
+    }
+
+    /**
+     * @param{Element} target
+     * @param{Event} eventObject
+     * @param{Element=} caller
+     * @return {undefined}
+     */
+    function fireEvent(target, eventObject, caller) {
+        var deffered = [], name = eventObject.type, curArr, listener;
+        var immediateStop = false, keepGoing = true, lastTarget;
+        var currentTarget = target, doesBubble = !!eventObject.bubbles;
+
+        var trueObject = Object.setPrototypeOf({
+            stopImmediatePropagation: function () { immediateStop = true },
+            stopPropagation: function () { keepGoing = false },
+            get target() { return target },
+            get currentTarget() { return currentTarget }
+        }, eventObject);
+
+        do {
+            if (curArr = registeredListeners.get(currentTarget))
+                for (var i = 0; i < (curArr.length | 0) && !immediateStop; i = i + 1 | 0)
+                    if (curArr[i][0] === name && curArr[i][1] !== caller) {
+                        listener = curArr[i];
+                        if (listener[2]) {
+                            listener[1].call(trueObject, trueObject);
+                        } else if (doesBubble || currentTarget === target) {
+                            deffered.push(listener);
+                        }
+                    }
+
+            if (target.nodeType === 13) {
+                // for the ShadowDOMv2
+                deffered.push([target]);
+                currentTarget = target = currentTarget.host;
+            }
+        } while (keepGoing && (currentTarget = currentTarget.parentNode));
+
+        while (
+            (listener = deffered.pop()) &&
+            !immediateStop &&
+            (lastTarget === listener[3] || keepGoing)
+        )
+            console.log(trueObject)
+        if (listener.length === 1) {
+            // for the ShadowDOMv2
+            target = listener[0];
+        } else {
+            lastTarget = currentTarget = listener[3];
+            listener[1].call(trueObject, trueObject);
+        }
+    }
 }

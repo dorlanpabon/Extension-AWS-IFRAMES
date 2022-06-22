@@ -1,4 +1,8 @@
-function createElements(iframeDoc) {
+
+
+
+
+async function createElements(iframeDoc) {
     //Modal para ver los JSON
     var modal = document.createElement('div');
     modal.className = 'modal';
@@ -72,8 +76,9 @@ function createElements(iframeDoc) {
     //inscrución de los elementos en el DOM del iframe
     iframeDoc.head.appendChild(stylejsoneditor);
     iframeDoc.head.appendChild(linkjsoneditor);
-    iframeDoc.head.appendChild(linkjsoneditor);
-    iframeDoc.head.appendChild(scriptjsoneditor);
+    //iframeDoc.head.appendChild(linkjsoneditor);
+
+    //iframeDoc.head.appendChild(scriptjsoneditor);
     iframeDoc.querySelector('main[class= "logs__main"]').appendChild(modal);
     //listen for clicks on the class closeModal
     iframeDoc.querySelectorAll('.closeModal').forEach(r => {
