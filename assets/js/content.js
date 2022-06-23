@@ -53,51 +53,60 @@ function injectCode(src, iframeDoc) {
 	// so we add the script to <html> instead.
 	nullthrows(iframeDoc.head).appendChild(script);
 }
-function loadHandler(doc) {
+//array to save waiting for elements
+var waiting = {};
+
+async function loadHandler(doc) {
 	//verify if the url is the same as the current url
 	if (window.location.href.indexOf('logs-insights') > -1 || window.location.href.indexOf('log-groups') > -1) {
-		waitForElm(doc, '#microConsole-Logs').then(async (elm) => {
-			//search in window the iframe with the id "microConsole-Logs"
-			var iframe = document.querySelector('#microConsole-Logs');
-			//get the iframe's contentDocument
-			var iframeDoc = iframe.contentDocument;
-			//get the iframe's contentWindow
-			var iframeWin = iframe.contentWindow;
-			//get the iframe's contentWindow's document
-			var iframeDoc = iframeWin.document;
-			var editor1 = iframeDoc.getElementById('jsoneditor1');
-			var editor2 = iframeDoc.getElementById('jsoneditor2');
+
+		//verify if exists the element in the array
+		if (waiting.micro) { return; }
+		waiting.micro = await waitForElm(doc, '#microConsole-Logs')
+		delete waiting.micro;
+		//search in window the iframe with the id "microConsole-Logs"
+		var iframe = document.querySelector('#microConsole-Logs');
+		//get the iframe's contentDocument
+		var iframeDoc = iframe.contentDocument;
+		//get the iframe's contentWindow
+		var iframeWin = iframe.contentWindow;
+		//get the iframe's contentWindow's document
+		var iframeDoc = iframeWin.document;
+		var editor1 = iframeDoc.getElementById('jsoneditor1');
+		var editor2 = iframeDoc.getElementById('jsoneditor2');
 
 
-			await waitForElm(iframeDoc, 'main[class="logs__main"]')
+		if (waiting.main) { return; }
+		waiting.main = await waitForElm(iframeDoc, 'main[class="logs__main"]')
+		delete waiting.main;
 
+		if (!editor1 && !editor2) {
+			await injectCode(chrome.runtime.getURL('/assets/js/jsoneditor.min.js'), iframeDoc);
+			var { editor1, editor2 } = await createElements(iframeDoc);
 
-			if (!editor1 && !editor2) {
-				await injectCode(chrome.runtime.getURL('/assets/js/jsoneditor.min.js'), iframeDoc);
-				var { editor1, editor2 } = await createElements(iframeDoc);
+			console.log('editor1', editor1);
+			console.log('editor2', editor2);
+		}
+		//verify if exist element with id "getjsonsGroups"
+		if (!iframeDoc.getElementById('getjsonsGroups') && window.location.href.indexOf('log-groups') > -1 && !waiting.jsonsGroups) {
+			waiting.jsonsGroups = Promise.all([
+				waitForElm(iframeDoc, 'button[class="awsui-button awsui-button-disabled awsui-button-variant-primary awsui-hover-child-icons"]'),
+			]).then(async (elm) => {
+				logsGroups(iframeDoc, waitForElm, editor1, editor2);
+				console.log('waiting.jsonsGroups');
+				delete waiting.jsonsGroups;
+			});
 
-				console.log('editor1', editor1);
-				console.log('editor2', editor2);
-			}
-			//verify if exist element with id "getjsonsGroups"
-			if (!iframeDoc.getElementById('getjsonsGroups') && window.location.href.indexOf('log-groups') > -1) {
-				Promise.all([
-					waitForElm(iframeDoc, 'button[class="awsui-button awsui-button-disabled awsui-button-variant-primary awsui-hover-child-icons"]'),
-				]).then(async (elm) => {
-					logsGroups(iframeDoc, waitForElm, editor1, editor2)
-				});
-
-			}
-			//verify if exist element with id "geturls"
-			if ((!iframeDoc.getElementById('geturls') || !iframeDoc.getElementById('getjsons')) && window.location.href.indexOf('logs-insights') > -1) {
-				Promise.all([
-					waitForElm(iframeDoc, '#scroll-query-button > button'),
-				]).then(function (values) {
-					logsInsights(iframeDoc, waitForElm, editor1, editor2),
-						console.log('after Promise.all')
-				});
-			}
-
-		});
+		}
+		//verify if exist element with id "geturls"
+		if ((!iframeDoc.getElementById('geturls') || !iframeDoc.getElementById('getjsons')) && window.location.href.indexOf('logs-insights') > -1 && !waiting.urlsjsons) {
+			waiting.urlsjsons = Promise.all([
+				waitForElm(iframeDoc, '#scroll-query-button > button'),
+			]).then(function (values) {
+				logsInsights(iframeDoc, waitForElm, editor1, editor2);
+				console.log('waiting.urlsjsons');
+				delete waiting.urlsjsons;
+			});
+		}
 	}
 }
