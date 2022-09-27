@@ -52,14 +52,16 @@ async function logsInsights(iframeDoc, waitForElm, editor1, editor2) {
             //regex to get the url StateFunction
             if (RegExp('^arn:aws:states:[a-zA-Z0-9-_]{1,}:[0-9]{12}:execution:[a-zA-Z0-9-_]{1,}:[a-zA-Z0-9-_]{1,}').test(tdValue) && tdTitle.includes("execution_arn")) {
                 execution_arn = 'https://' + region + '.console.aws.amazon.com/states/home?region=' + region + '#/executions/details/' + tdValue;
-                console.log(tdValueHTML.innerHTML = '<a href="' + execution_arn + '" target="_blank">' + tdValue + '</a>');
+                tdValueHTML.innerHTML = '<a href="' + execution_arn + '" target="_blank">' + tdValue + '</a>'
+                console.log(tdValueHTML.innerHTML);
             };
             //regex to get the url lambda
             if (RegExp('\d*:[a-zA-Z0-9-_]*').test(tdValue) && tdTitle.includes("@log")) {
                 //remplazamos el / por $252F para que amazon lo reconozca
                 textLog = tdValue.replace(/\d*:/, '').replaceAll('/', '$252F');
                 urlLog = 'https://' + region + '.console.aws.amazon.com/cloudwatch/home?region=' + region + '#logsV2:log-groups/log-group/' + textLog;
-                console.log(tdValueHTML.innerHTML = '<a href="' + urlLog + '" target="_blank">' + tdValue + '</a>');
+                tdValueHTML.innerHTML = '<a href="' + urlLog + '" target="_blank">' + tdValue + '</a>'
+                console.log(tdValueHTML.innerHTML);
                 //recorrer todos los tdValueHTML para obtener el logStream
                 var tdValueParent;
                 var parenNode = r.parentNode.children.length;
@@ -70,13 +72,17 @@ async function logsInsights(iframeDoc, waitForElm, editor1, editor2) {
                         //remplazamos el / por $252F para que amazon lo reconozca
                         textLogStream = tdValueParent.replaceAll('/', '$252F');
                         logStream = 'https://' + region + '.console.aws.amazon.com/cloudwatch/home?region=' + region + '#logsV2:log-groups/log-group/' + textLog + '/log-events/' + textLogStream;
-                        console.log(r.parentNode.children[i].children[1].innerHTML = '<a href="' + logStream + '" target="_blank">' + tdValueParent + '</a>');
+                        //añadir el logStream al tdValueHTML
+                        r.parentNode.children[i].children[1].innerHTML = '<a href="' + logStream + '" target="_blank">' + tdValueParent + '</a>'
+                        console.log(r.parentNode.children[i].children[1].innerHTML);
                     }
                     //if @timestamp
                     if (r.parentNode.children[i].innerText.includes("@timestamp")) {
                         timestamp = r.parentNode.children[i].children[1].innerText;
                         urllogStreamTimestamp = 'https://' + region + '.console.aws.amazon.com/cloudwatch/home?region=' + region + '#logsV2:log-groups/log-group/' + textLog + '/log-events/' + textLogStream + '$3Fstart$3D' + timestamp + '$26end$3D' + (Number(timestamp) + 1);
-                        console.log(r.parentNode.children[i].children[1].innerHTML = '<a href="' + urllogStreamTimestamp + '" target="_blank">' + timestamp + '</a>');
+                        //añadir el logStream al tdValueHTML
+                        r.parentNode.children[i].children[1].innerHTML = '<a href="' + urllogStreamTimestamp + '" target="_blank">' + timestamp + '</a>'
+                        console.log(r.parentNode.children[i].children[1].innerHTML);
                     }
                 }
             };
