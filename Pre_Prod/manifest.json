@@ -4,7 +4,11 @@
   "manifest_version": 3,
   "version": "2.0.0",
   "description": "AWS utilities",
-  "permissions": [],
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage"
+  ],
   "icons": {
     "16": "./assets/images/icon1.png",
     "32": "./assets/images/icon1.png",
@@ -17,7 +21,6 @@
         "*://*.console.aws.amazon.com/cloudwatch/home?region=*"
       ],
       "js": [
-        "assets/js/logs-microconsole.min.js",
         "assets/js/jquery.min.js",
         "assets/js/jsoneditor.min.js",
         "assets/js/content.js"
