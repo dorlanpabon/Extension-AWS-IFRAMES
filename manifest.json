@@ -17,7 +17,6 @@
         "*://*.console.aws.amazon.com/cloudwatch/home?region=*"
       ],
       "js": [
-        "assets/js/logs-microconsole.min.js",
         "assets/js/jquery.min.js",
         "assets/js/jsoneditor.min.js",
         "assets/js/functions/logsInsights.js",

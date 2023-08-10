@@ -27,7 +27,7 @@ function waitForElm(doc, selector) {
 				observer.disconnect();
 			}
 		});
-		observer.observe(doc.body, {
+		observer.observe(doc, {
 			childList: true,
 			subtree: true
 		});
@@ -100,10 +100,12 @@ async function loadHandler(doc) {
 		}
 		//verify if exist element with id "geturls"
 		if ((!iframeDoc.getElementById('geturls') || !iframeDoc.getElementById('getjsons')) && window.location.href.indexOf('logs-insights') > -1 && !waiting.urlsjsons) {
+			console.log('waiting.urlsjsons');
+			let selector = "#logs-micro-console__root > div > div > div > div > div.panel-menu"
 			waiting.urlsjsons = Promise.all([
-				waitForElm(iframeDoc, '#scroll-query-button > button'),
+				waitForElm(iframeDoc, selector),
 			]).then(function (values) {
-				logsInsights(iframeDoc, waitForElm, editor1, editor2);
+				logsInsights(iframeDoc, waitForElm, editor1, editor2, selector);
 				console.log('waiting.urlsjsons');
 				delete waiting.urlsjsons;
 			});

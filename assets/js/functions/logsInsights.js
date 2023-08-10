@@ -1,10 +1,8 @@
-async function logsInsights(iframeDoc, waitForElm, editor1, editor2) {
+async function logsInsights(iframeDoc, waitForElm, editor1, editor2, selector) {
     console.log('logsInsights');
-    await waitForElm(iframeDoc, "#scroll-query-button > button");
+    await waitForElm(iframeDoc, selector);
     //get the iframe's contentWindow's document's body
     var iframeBody = iframeDoc.body;
-    //get the iframe's contentWindow's document's body's children
-    var iframeBodyChildren = iframeBody.children;
 
     console.log(iframeBody);
 
@@ -33,14 +31,15 @@ async function logsInsights(iframeDoc, waitForElm, editor1, editor2) {
         <p>Get JSON's</p>
                 `;
 
-    iframeDoc.querySelector("#logs-micro-console__root > div > div > div > div > div.panel-menu").appendChild(geturls);
-    iframeDoc.querySelector("#logs-micro-console__root > div > div > div > div > div.panel-menu").appendChild(getjsons);
+    iframeDoc.querySelector(selector).appendChild(geturls);
+    iframeDoc.querySelector(selector).appendChild(getjsons);
 
+    let selectorAllItems = "td[class='logs-insights-expanded-row']>table>tbody>tr";
     //Funcion para obtener las URLs de los logs
     function cargarURLS() {
         console.log("cargarURLS");
         //recorrermos todos los tr de los elmentos con desplegable
-        iframeDoc.querySelectorAll("div[class='logs-insights-expanded-row']>table>tbody>tr").forEach(r => {
+        iframeDoc.querySelectorAll(selectorAllItems).forEach(r => {
             var execution_arn
             var urlLog
             var logStream
@@ -90,7 +89,7 @@ async function logsInsights(iframeDoc, waitForElm, editor1, editor2) {
     }
     //Funcion para cargar los JSON en el editor
     function cargarJsonView() {
-        iframeDoc.querySelectorAll("div[class='logs-insights-expanded-row']>table>tbody>tr").forEach(r => {
+        iframeDoc.querySelectorAll(selectorAllItems).forEach(r => {
             var tdTitle = r.children[0].innerText;
             var tdValue = r.children[1].innerText;
             if (tdTitle.includes("@message") || tdTitle.includes("Message")) {
